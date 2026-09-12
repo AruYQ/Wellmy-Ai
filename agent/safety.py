@@ -45,6 +45,11 @@ def reset_abort() -> None:
     logger.info("🛡️ Status darurat dinonaktifkan. Sistem kembali normal.")
 
 
+def reset_emergency_stop() -> None:
+    """Alias untuk reset_abort."""
+    reset_abort()
+
+
 def register_emergency_callback(callback: Callable[[str], None]) -> None:
     """Mendaftarkan fungsi yang akan dipanggil seketika saat tombol panik aktif."""
     with _callbacks_lock:

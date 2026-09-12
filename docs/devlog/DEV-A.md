@@ -77,4 +77,45 @@ Dokumen ini mencatat kronologis aktivitas teknis implementasi proyek **Wellmy-Ai
 - `python -m unittest tests/test_safety.py`
 - **Hasil:** 5 pengujian lolos (`Ran 5 tests in 0.203s - OK`).
 
+---
+
+## 📅 2026-09-12 — Sprint 2: Kerangka Desktop GUI, Spotlight HUD & System Tray
+
+**Sprint**: Sprint 2 (Kerangka Desktop GUI & System Tray)  
+**Branch**: `feature/sprint-2-desktop-gui`  
+**Status**: Selesai (`[x]`)
+
+### 🎯 Scope Pekerjaan
+- Menerapkan Design System desktop modern dan 30 Anti-Slop Desktop UI Rules (Rule 06) pada `gui/styles.py` dengan token terpusat, dark slate palette (`#0F1117`, `#171B26`, `#6B7FD7`, `#4ECDC4`), dan micro-interactions.
+- Membangun `gui/panic_badge.py` sebagai indikator status visual thread-safe yang terhubung ke `agent.safety` (hijau ARMED vs merah EMERGENCY ACTIVE).
+- Mengembangkan `gui/autoclicker_view.py` dengan BentoCard visual layout, slider 1-100 CPS, pengunci koordinat kursor, pemilih tombol mouse, dan background worker thread (`AutoclickerWorker`).
+- Mengembangkan `gui/main_hud.py` sebagai Spotlight HUD melayang tanpa bingkai (`FramelessWindowHint`, `WindowStaysOnTopHint`, `WA_TranslucentBackground`), draggable, keyboard shortcuts (ESC untuk minimize), input perintah, drawer autoclicker expandable, dan animasi fade-in.
+- Mengembangkan `gui/system_tray.py` dengan ikon monogram procedural resolusi tinggi (bebas dependensi aset grafis eksternal) dan context menu terintegrasi failsafe (Tampilkan HUD, Buka Autoclicker, Emergency Stop, Reset Emergency, Keluar).
+- Mengintegrasikan seluruh komponen dalam file runner utama `app.py` dengan penanganan sinyal SIGINT terminal dan isolasi background tray.
+- Menulis unit test komprehensif `tests/test_gui.py` untuk menguji token, gaya, generator ikon tray, transisi badge, dan state worker.
+
+### 📂 Berkas yang Dibuat / Dimodifikasi
+- `gui/__init__.py` (Dibuat)
+- `gui/styles.py` (Dibuat — QSS Design System & Color Tokens)
+- `gui/panic_badge.py` (Dibuat — Visual Panic Indicator & Signal Bridge)
+- `gui/autoclicker_view.py` (Dibuat — Panel Autoclicker dengan QThread Worker)
+- `gui/main_hud.py` (Dibuat — Spotlight Floating HUD Window)
+- `gui/system_tray.py` (Dibuat — Procedural System Tray Icon & Menu)
+- `app.py` (Dibuat — Main Application Runner)
+- `agent/safety.py` (Diperbarui — Menambahkan alias `reset_emergency_stop()`)
+- `tests/test_gui.py` (Dibuat — Automated Unit Tests GUI)
+- `docs/progress.md` (Diperbarui)
+- `docs/devlog/DEV-A.md` (Diperbarui)
+
+### 🎨 Vibe Coding & Anti-Slop Compliance (Rule 06)
+- Setiap berkas dalam `gui/` memuat blok `<vibe_check>` wajib.
+- Background transparan acrylic dengan blur drop shadow kustom, sudut melengkung elegan (`border-radius: 18px`).
+- Tidak ada tombol atau kontrol standar Windows yang polos / jadul.
+- Animasi transisi halus (`QPropertyAnimation` fade-in, slider tracking).
+- Teks nomor CPS dan koordinat menggunakan tipografi monospace modern (`JetBrains Mono`).
+
+### 🧪 Hasil Pengujian Unit (Unit Test Results)
+- Perintah: `python -m unittest discover tests`
+- Hasil: 11/11 pengujian lolos (`Ran 11 tests in 0.227s - OK`).
+
 
