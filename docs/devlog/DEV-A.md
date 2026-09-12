@@ -39,3 +39,42 @@ Dokumen ini mencatat kronologis aktivitas teknis implementasi proyek **Wellmy-Ai
 - Direktori sementara `Import-rules/` dan `Import-Skils/` telah dibersihkan secara aman dari repositori.
 - Siap menerima teks instruksi otentik Wellmy Ernest dari pengguna.
 
+---
+
+## 📅 2026-09-12 — Sprint 1: Fondasi Keamanan, Konfigurasi & Actuation Failsafe
+
+**Sprint**: Sprint 1 (Fondasi Keamanan & Mekanisme Failsafe)  
+**Branch**: `feature/sprint-1-foundation-safety`  
+**Status**: Selesai (`[x]`)
+
+### 🎯 Scope Pekerjaan
+- Inisialisasi Git dan pembuatan public repository di GitHub: `https://github.com/AruYQ/Wellmy-Ai`.
+- Pengaturan alur branching: `main` (release) ➔ `develop` (staging/integration) ➔ `feature/sprint-1-foundation-safety`.
+- Pembuatan `.env.example` sebagai cetak biru konfigurasi tersanitasi.
+- Implementasi `config.py` menggunakan `pydantic-settings` dengan tipe `SecretStr` (Rule 01).
+- Implementasi pengendali darurat kilat `agent/safety.py` (atomic flag `<1ms`, panic hotkey `pynput`, emergency callbacks).
+- Implementasi engine kursor dan autoclicker presisi di `agent/tools/mouse_keyboard.py` dengan proteksi `pyautogui.FAILSAFE = True` dan sanitasi anti-eksfiltrasi pada `type_text`.
+- Penulisan skrip pengujian otomatis `tests/test_safety.py`.
+
+### 📂 Berkas yang Dibuat / Dimodifikasi
+- `.gitignore` (Dibuat — blokir mutlak file kredensial)
+- `.env.example` (Dibuat)
+- `requirements.txt` (Dibuat)
+- `config.py` (Dibuat)
+- `agent/safety.py` (Dibuat)
+- `agent/tools/__init__.py` (Dibuat)
+- `agent/tools/mouse_keyboard.py` (Dibuat)
+- `tests/test_safety.py` (Dibuat)
+- `docs/progress.md` (Diperbarui)
+
+### 🛡️ Safety & Credential Check
+- **Credential Safety:** `SecretStr` teruji tidak menampilkan API key pada `str()`, `repr()`, atau log console.
+- **Actuation Safety:** Pengujian unit membuktikan autoclicker berhenti dalam `<100ms` saat tombol panik ditekan.
+- **FailSafe Active:** Menggeser mouse ke sudut layar memicu darurat seketika.
+- **Anti-Leak Active:** Fungsi `type_text` menolak mengetik jika teks mengandung rahasia API key.
+
+### 🧪 Hasil Pengujian Unit (Unit Test Results)
+- `python -m unittest tests/test_safety.py`
+- **Hasil:** 5 pengujian lolos (`Ran 5 tests in 0.203s - OK`).
+
+

@@ -1,0 +1,26 @@
+# Core Configuration & Secrets Isolation
+pydantic>=2.5.0
+pydantic-settings>=2.1.0
+python-dotenv>=1.0.0
+
+# Desktop Actuation & Input Control
+pyautogui>=0.9.54
+pynput>=1.7.6
+
+# Brain & LLM Engine (Google Gemini SDK)
+google-genai>=1.0.0
+
+# Voice & Audio System
+google-cloud-texttospeech>=2.16.0
+sounddevice>=0.4.6
+numpy>=1.26.0
+
+# Window, Screen Capture & Vision
+mss>=9.0.1
+Pillow>=10.0.0
+
+# Desktop GUI Framework
+PyQt6>=6.6.0
+
+# Background Scheduler & Task Queues
+APScheduler>=3.10.4
