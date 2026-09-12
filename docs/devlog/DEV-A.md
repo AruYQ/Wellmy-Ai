@@ -302,4 +302,26 @@ Dokumen ini mencatat kronologis aktivitas teknis implementasi proyek **Wellmy-Ai
 - Perintah: `python -m unittest discover tests`
 - Hasil: 45/45 pengujian lolos 100% (`Ran 45 tests in 7.276s - OK`).
 
+---
+
+## 📅 2026-09-12 — Fix: Windows Audio Routing & WASAPI Hardware Binding
+
+**Komponen**: Voice & Audio Playback Subsystem (`agent/voice/audio_player.py`, `gui/main_hud.py`)  
+**Status**: Selesai (`[x]`)
+
+### 🎯 Scope Perbaikan & Diagnosis Hardware
+- **Akar Masalah Audio Hening:** Pada laptop pengguna (**ASUS TUF Gaming F15 FX507ZC**), audio endpoint fisik aktif yang terpasang adalah `Speakers (C-Media(R) Audio)` berbasis USB Audio Class 2.0 (`USB\VID_0B05&PID_6203`).
+- Implementasi sebelumnya yang mencoba memutar melalui Windows MCI legacy (`winmm.dll`) dialirkan ke antarmuka legacy 16-bit MME WaveOut bus yang tidak di-bridge ke driver USB UAC2 ASUS pada Windows 11. Selain itu, MCI volume tidak secara eksplisit di-boost, mengakibatkan status pemutaran "berhasil" namun tidak ada suara yang keluar dari speaker fisik.
+- **Solusi Rekayasa:**
+  - Mengembalikan dan mengoptimalkan **`QMediaPlayer` + `QAudioOutput` berbasis WASAPI murni** sebagai engine audio utama. WASAPI terhubung langsung ke Windows Core Audio session dan menghormati driver USB Audio hardware endpoint secara native.
+  - Menambahkan auto-binding eksplisit ke `QMediaDevices.defaultAudioOutput()` setiap kali `play_file()` dipanggil untuk memastikan audio selalu diarahkan ke endpoint aktif default Windows (`Speakers (C-Media(R) Audio)`).
+  - Memaksa `setMuted(False)` dan `setVolume(1.0)` pada `QAudioOutput` agar audio selalu terdengar pada level optimal.
+  - Mempertahankan `winsound` (untuk file WAV) dan Windows MCI (dengan `setaudio volume to 1000`) sebagai fallback bertingkat yang andal.
+  - Menangani error pada `TTSWorker` dan `speak()` di `MainHUD` secara asinkron tanpa tabrakan thread.
+
+### 🧪 Verifikasi
+- 45/45 unit test lolos (`Ran 45 tests in 7.715s - OK`).
+- Pengujian mandiri pemutaran stream WASAPI ke `Speakers (C-Media(R) Audio)` berhasil tereksekusi penuh (7.104s).
+
+
 

@@ -295,9 +295,16 @@ class MainHUD(QWidget):
         if not text.strip():
             return
 
+        if self._active_tts_worker and self._active_tts_worker.isRunning():
+            self._active_tts_worker.terminate()
+            self._active_tts_worker.wait(50)
+
         self._active_tts_worker = TTSWorker(self.tts_engine, text)
         self._active_tts_worker.audio_ready.connect(
             lambda audio_path: self.audio_player.play_file(Path(audio_path))
+        )
+        self._active_tts_worker.error_signal.connect(
+            lambda err: logger.error(f"Gagal sintesis TTS: {err}")
         )
         self._active_tts_worker.start()
 
@@ -310,7 +317,7 @@ class MainHUD(QWidget):
             self.mic_btn.setStyleSheet(f"color: #A882DD; font-size: 14px; font-weight: bold; background: {TOKENS['bg_overlay']};")
             self.mic_btn.setToolTip("Mode Suara: AKTIF (Klik untuk menonaktifkan)")
             self.waveform.set_state(WaveformWidget.STATE_IDLE)
-            self.set_response_text("🎙️ Mode suara anggun Wellmy (WaveNet) diaktifkan.")
+            self.set_response_text("🎙️ Mode suara anggun Wellmy diaktifkan.")
             self.speak("Mode suara telah aktif, Tuanku. Wellmy siap mendampingi Anda.")
         else:
             self.mic_btn.setStyleSheet("")
