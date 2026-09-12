@@ -118,4 +118,39 @@ Dokumen ini mencatat kronologis aktivitas teknis implementasi proyek **Wellmy-Ai
 - Perintah: `python -m unittest discover tests`
 - Hasil: 11/11 pengujian lolos (`Ran 11 tests in 0.227s - OK`).
 
+---
+
+## 📅 2026-09-12 — Sprint 3: Integrasi Otak Gemini & Function Calling Tools
+
+**Sprint**: Sprint 3 (Integrasi Otak Gemini & Function Calling Tools)  
+**Branch**: `feature/sprint-3-gemini-brain-tools`  
+**Status**: Selesai (`[x]`)
+
+### 🎯 Scope Pekerjaan
+- Menginstal dan mengintegrasikan official SDK `google-genai` (v2.23.0).
+- Membangun katalog tool deklaratif `agent/tools/registry.py` (`get_cursor_info`, `move_cursor`, `click_mouse`, `type_text_content`, `execute_autoclicker`) dengan proteksi darurat `is_aborted()` dan penanganan exception yang aman.
+- Mengembangkan modul kognitif `agent/brain.py` (`WellmyBrain`) yang membaca System Instruction dari `agent/prompts/wellmy_ernest_instruction.md`, mengelola sesi percakapan multi-turn (`client.chats.create`), dan menangani ketiadaan API key secara anggun berkarakter.
+- Membangun thread eksekusi asinkron `gui/agent_worker.py` (`AgentWorker`) untuk menghubungkan penalaran AI ke GUI tanpa membekukan loop utama.
+- Menghubungkan input teks dari `MainHUD` ke `AgentWorker` sehingga perintah pengguna langsung dipikirkan dan dieksekusi oleh Wellmy.
+- Menulis unit testing `tests/test_brain.py` untuk menguji registrasi tool, validasi failsafe tool, penanganan pesan tanpa API key, dan eksekusi worker.
+
+### 📂 Berkas yang Dibuat / Dimodifikasi
+- `requirements.txt` (Diperbarui)
+- `agent/tools/registry.py` (Dibuat — Declarative Tools untuk Gemini)
+- `agent/brain.py` (Dibuat — WellmyBrain & Multi-turn Chat)
+- `gui/agent_worker.py` (Dibuat — Background Execution Thread)
+- `gui/main_hud.py` (Diperbarui — Integrasi AI input & feedback)
+- `tests/test_brain.py` (Dibuat — Unit Tests Kognitif & Tools)
+- `docs/progress.md` (Diperbarui)
+- `docs/devlog/DEV-A.md` (Diperbarui)
+
+### 🛡️ Safety & Failsafe Integrity
+- **Emergency Abort:** Seluruh tool dalam `registry.py` mengecek `is_aborted()` dan membatalkan aksi fisik seketika jika panik aktif.
+- **Priority Checking:** `WellmyBrain.send_message` memeriksa status darurat terlebih dahulu sebelum memeriksa hal lain.
+- **Sanitasi Kredensial:** Output sanitization mencegah kebocoran API Key.
+
+### 🧪 Hasil Pengujian Unit (Unit Test Results)
+- Perintah: `python -m unittest discover tests`
+- Hasil: 18/18 pengujian lolos (`Ran 18 tests in 0.230s - OK`).
+
 
