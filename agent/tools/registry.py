@@ -131,6 +131,69 @@ def execute_autoclicker(
         return {"status": "error", "error": str(e)}
 
 
+def get_screen_dimensions() -> Dict[str, Any]:
+    """Mendapatkan dimensi lebar dan tinggi resolusi layar desktop pengguna dalam satuan piksel."""
+    if is_aborted():
+        return {"status": "aborted", "error": "Emergency stop aktif!"}
+    from agent.tools.screen_vision import get_screen_resolution
+    w, h = get_screen_resolution()
+    return {"status": "success", "width": w, "height": h}
+
+
+def inspect_screen_vision(question: str = "Jelaskan apa yang sedang terlihat di layar desktop pengguna saat ini.") -> Dict[str, Any]:
+    """
+    Melihat dan menganalisis tampilan layar desktop pengguna saat ini secara multimodal (Vision).
+    Gunakan tool ini ketika pengguna menanyakan isi layar, mencari posisi tombol/elemen visual, atau memeriksa status jendela.
+    Area jendela sensitif (.env, password manager, perbankan) otomatis disensor sebelum dianalisis demi privasi (Rule 01).
+
+    Args:
+        question: Pertanyaan atau instruksi spesifik mengenai apa yang ingin dicari atau dianalisis pada tampilan layar.
+    """
+    if is_aborted():
+        return {"status": "aborted", "error": "Emergency stop aktif! Analisis penglihatan layar dibatalkan."}
+
+    from config import config
+    if not config.is_api_key_configured():
+        return {"status": "error", "error": "Kunci API Gemini belum terpasang di .env."}
+
+    try:
+        from agent.tools.screen_vision import capture_desktop, image_to_png_bytes
+        from google import genai
+        from google.genai import types
+
+        # Tangkap layar dengan sensor otomatis
+        image = capture_desktop(redact=True)
+        img_bytes = image_to_png_bytes(image)
+
+        client = genai.Client(api_key=config.get_api_key())
+        image_part = types.Part.from_bytes(data=img_bytes, mime_type="image/png")
+
+        prompt = f"Anda adalah persepsi visual Wellmy-Ai. Perhatikan tangkapan layar pengguna berikut dan jawab pertanyaan dengan akurat: {question}"
+        model = config.gemini_model or "gemini-3.7-flash"
+
+        try:
+            response = client.models.generate_content(
+                model=model,
+                contents=[image_part, prompt],
+            )
+        except Exception as e:
+            if ("503" in str(e) or "404" in str(e)) and model != "gemini-3.6-flash":
+                logger.warning(f"Model vision {model} gagal, fallback ke gemini-3.6-flash...")
+                response = client.models.generate_content(
+                    model="gemini-3.6-flash",
+                    contents=[image_part, prompt],
+                )
+            else:
+                raise e
+
+        obs = response.text.strip() if response and response.text else "Tangkapan layar telah diamati."
+        return {"status": "success", "observation": obs}
+
+    except Exception as e:
+        logger.error(f"Gagal melakukan inspect_screen_vision: {e}")
+        return {"status": "error", "error": str(e)}
+
+
 # Daftar seluruh tool yang tersedia untuk Google Gemini Function Calling
 OPERATOR_TOOLS: List[Any] = [
     get_cursor_info,
@@ -138,4 +201,6 @@ OPERATOR_TOOLS: List[Any] = [
     click_mouse,
     type_text_content,
     execute_autoclicker,
+    get_screen_dimensions,
+    inspect_screen_vision,
 ]

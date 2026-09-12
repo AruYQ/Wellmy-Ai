@@ -15,7 +15,7 @@
 | **Sprint 1** | Fondasi Keamanan & Failsafe | 🟢 Selesai (`[x]`) | `config.py` (SecretStr), `safety.py` (Panic Hotkey), PyAutoGUI Failsafe, clicker engine |
 | **Sprint 2** | Kerangka Desktop GUI & System Tray | 🟢 Selesai (`[x]`) | PyQt6 main window, frameless HUD spotlight, system tray integration, visual panic |
 | **Sprint 3** | Integrasi Otak Gemini & Tools | 🟢 Selesai (`[x]`) | `google-genai` SDK, Function calling schema, tool execution loop, tool registry |
-| **Sprint 4** | Vision & Screen Perception | ⚪ Siap Dimulai | Screen capture (`mss`), Gaussian blur redaction pada window sensitif, coordinate mapper |
+| **Sprint 4** | Vision & Screen Perception | 🟢 Selesai (`[x]`) | Screen capture (`mss`), Gaussian blur redaction pada window sensitif, coordinate mapper |
 | **Sprint 5** | Wellmy Ernest Personality Engine | ⚪ Menunggu Prompt User | Inject `wellmy_ernest_instruction.md`, emotional state engine, system prompt compiler |
 | **Sprint 6** | Voice & Sound System | ⚪ Belum Mulai | Google Cloud TTS WaveNet (profil suara anggun), Gemini Live API (bidirectional voice), waveform HUD |
 | **Sprint 7** | Scheduler, Timer & End-to-End Test | ⚪ Belum Mulai | APScheduler, multi-step flow test, stress test clicker, end-to-end audit |
@@ -34,5 +34,6 @@
 - [x] Menyelesaikan Sprint 1: `config.py` (`SecretStr`), `safety.py` (Panic Hotkey), engine kursor & autoclicker presisi, unit testing 100% lolos (5/5 tests passed).
 - [x] Menyelesaikan Sprint 2: QSS Design System modern (`gui/styles.py`), PanicBadge thread-safe visual indicator (`gui/panic_badge.py`), AutoclickerView control panel 1-100 CPS dengan background thread worker (`gui/autoclicker_view.py`), MainHUD frameless spotlight floating window (`gui/main_hud.py`), SystemTrayManager dengan procedural monogram icon & failsafe trigger (`gui/system_tray.py`), dan main entrypoint `app.py`. Unit testing 100% lolos (11/11 tests passed).
 - [x] Menyelesaikan Sprint 3: Integrasi resmi Google GenAI SDK (`google-genai`), katalog declarative tools (`agent/tools/registry.py`), modul kognitif `WellmyBrain` dengan sesi percakapan multi-turn & isolasi failsafe, eksekusi asinkron non-blocking `AgentWorker` (`QThread`), dan integrasi input HUD ke AI. Unit testing 100% lolos (18/18 tests passed).
+- [x] Menyelesaikan Sprint 4: Integrasi penangkap layar berkecepatan tinggi (`mss`), modul sensor jendela sensitif otomatis (`agent/tools/vision_redactor.py`) berbasis kata kunci (.env, password, banking, tokens) dengan Gaussian blur & dark watermark (Rule 01), serta tools multimodal `inspect_screen_vision` dan `get_screen_dimensions`. Unit testing 100% lolos (25/25 tests passed).
 
 

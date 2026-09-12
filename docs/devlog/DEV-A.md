@@ -153,4 +153,37 @@ Dokumen ini mencatat kronologis aktivitas teknis implementasi proyek **Wellmy-Ai
 - Perintah: `python -m unittest discover tests`
 - Hasil: 18/18 pengujian lolos (`Ran 18 tests in 0.230s - OK`).
 
+---
+
+## 📅 2026-09-12 — Sprint 4: Vision & Screen Perception
+
+**Sprint**: Sprint 4 (Vision & Screen Perception)  
+**Branch**: `feature/sprint-4-vision-perception`  
+**Status**: Selesai (`[x]`)
+
+### 🎯 Scope Pekerjaan
+- Menginstal pustaka tangkapan layar berkecepatan tinggi `mss` (v10.2.0).
+- Membangun modul sensor otomatis area sensitif `agent/tools/vision_redactor.py` (Rule 01) yang memindai judul jendela Windows aktif (`.env`, `password`, `keepass`, `1password`, `bitwarden`, `banking`, `credentials`, `token`, `secret`) dan menerapkan Gaussian Blur tebal serta watermark proteksi sebelum data gambar dikirim ke LLM.
+- Mengembangkan engine penangkap layar `agent/tools/screen_vision.py` (`capture_desktop`, `get_screen_resolution`, `image_to_png_bytes`) dengan scaling proporsional dan fallback tangguh untuk berbagai jenis display context.
+- Menambahkan fungsi multimodal ke katalog tool deklaratif `agent/tools/registry.py`:
+  - `inspect_screen_vision(question: str)`: Mengambil screenshot tersensor dan menganalisis tampilan layar menggunakan Gemini multimodal.
+  - `get_screen_dimensions()`: Membaca dimensi fisik layar desktop.
+- Menulis unit testing komprehensif `tests/test_vision.py` untuk menguji pembacaan resolusi, capture desktop, verifikasi perubahan piksel pada area sensor privasi, manifes katalog tool, dan pembatalan failsafe darurat.
+
+### 📂 Berkas yang Dibuat / Dimodifikasi
+- `agent/tools/vision_redactor.py` (Dibuat — Sensitive Window Detection & Gaussian Redaction)
+- `agent/tools/screen_vision.py` (Dibuat — High-speed Screen Capture Engine)
+- `agent/tools/registry.py` (Diperbarui — Menambahkan inspect_screen_vision & get_screen_dimensions)
+- `tests/test_vision.py` (Dibuat — Unit Tests Vision & Sensor Privasi)
+- `docs/progress.md` (Diperbarui)
+- `docs/devlog/DEV-A.md` (Diperbarui)
+
+### 🛡️ Privacy & Safety Verification (Rule 01)
+- **Automatic Redaction:** Window yang mengandung kata kunci sensitif (.env, password, tokens) otomatis disensor di level pixel sebelum dikirim ke API cloud.
+- **FailSafe Active:** Jika sistem darurat (`is_aborted()`) terpicu, capture layar dibatalkan seketika dan tool vision mengembalikan status aborted.
+
+### 🧪 Hasil Pengujian Unit (Unit Test Results)
+- Perintah: `python -m unittest discover tests`
+- Hasil: 25/25 pengujian lolos (`Ran 25 tests in 1.067s - OK`).
+
 
