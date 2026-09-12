@@ -32,6 +32,11 @@ def main() -> None:
     # Izinkan pemrosesan sinyal Ctrl+C di terminal
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
+    # Inisialisasi QApplication terlebih dahulu agar Qt mengonfigurasi DPI context tanpa konflik
+    app = QApplication(sys.argv)
+    app.setApplicationName("Wellmy-Ai")
+    app.setApplicationDisplayName("Wellmy-Ai Desktop Operator")
+
     # Daftarkan Windows AppUserModelID agar icon muncul mandiri di Windows Taskbar
     import os
     if os.name == "nt":
@@ -40,10 +45,6 @@ def main() -> None:
             ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("wellmy.ai.desktop.operator.1.0")
         except Exception:
             pass
-
-    app = QApplication(sys.argv)
-    app.setApplicationName("Wellmy-Ai")
-    app.setApplicationDisplayName("Wellmy-Ai Desktop Operator")
 
     # Set icon aplikasi secara global untuk Taskbar Windows
     from gui.system_tray import create_default_tray_icon
@@ -84,6 +85,11 @@ def main() -> None:
             safety_listener.stop()
         if hud.autoclicker_view.worker and hud.autoclicker_view.worker.isRunning():
             hud.autoclicker_view.worker.stop()
+        try:
+            from agent.scheduler import get_scheduler
+            get_scheduler().shutdown(wait=False)
+        except Exception:
+            pass
         app.quit()
 
     tray_manager = SystemTrayManager(

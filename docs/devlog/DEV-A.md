@@ -258,4 +258,48 @@ Dokumen ini mencatat kronologis aktivitas teknis implementasi proyek **Wellmy-Ai
 - Perintah: `python -m unittest discover tests`
 - Hasil: 34/34 pengujian lolos (`Ran 34 tests in 1.140s - OK`).
 
+---
+
+## 📅 2026-09-12 — Sprint 7: Scheduler, Timer & End-to-End Test Suite (Final Sprint)
+
+**Sprint**: Sprint 7 (Scheduler, Timer & End-to-End Test Suite)  
+**Branch**: `feature/sprint-7-scheduler-and-testing`  
+**Status**: Selesai (`[x]`)
+
+### 🎯 Scope Pekerjaan
+- Mengembangkan engine penjadwal tugas latar belakang [`agent/scheduler.py`](file:///d:/Wellmy-Ai/agent/scheduler.py) (`TaskScheduler`) berbasis `APScheduler.schedulers.background.BackgroundScheduler` dengan eksekusi daemon terisolasi.
+- Mengintegrasikan mekanisme keamanan failsafe (Rule 03): setiap tugas terjadwal diverifikasi dengan pembungkus `_wrap_safe_callback` yang memeriksa `is_aborted()`; jika sistem dalam kondisi darurat, aksi fisik/pemberitahuan dibatalkan seketika.
+- Menambahkan 3 tool deklaratif penjadwalan pada [`agent/tools/registry.py`](file:///d:/Wellmy-Ai/agent/tools/registry.py):
+  - `schedule_task(task_name, delay_seconds, message_or_action)`: Menjadwalkan aksi/pengingat di masa depan.
+  - `list_active_tasks()`: Melihat seluruh tugas dan timer yang sedang aktif.
+  - `cancel_scheduled_task(task_id)`: Membatalkan tugas terjadwal berdasarkan ID.
+- Mendaftarkan ketiga tool tersebut ke dalam `OPERATOR_TOOLS` sehingga Gemini dapat menjadwalkan aksi secara mandiri.
+- Memperbaiki urutan inisialisasi pada [`app.py`](file:///d:/Wellmy-Ai/app.py): menginisialisasi `QApplication` sebelum `SetCurrentProcessExplicitAppUserModelID` agar warning `SetProcessDpiAwarenessContext() failed: Access is denied` di Windows tereliminasi secara bersih, serta mendaftarkan `get_scheduler().shutdown()` pada penutupan aplikasi.
+- Menulis unit testing [`tests/test_scheduler.py`](file:///d:/Wellmy-Ai/tests/test_scheduler.py) untuk menguji eksekusi delay timer, pembatalan task, query task aktif, dan isolasi saat darurat aktif.
+- Membangun suite pengujian integrasi ujung-ke-ujung dan uji ketahanan performa tinggi [`tests/test_e2e.py`](file:///d:/Wellmy-Ai/tests/test_e2e.py) (*Stress Test*):
+  - Autoclicker Stress Test pada kecepatan 100 CPS dengan pemutusan darurat (<100ms) tanpa thread hang atau crash.
+  - Koherensi Personality Engine & 11 perkakas deklaratif operator pada `OPERATOR_TOOLS`.
+  - Failsafe audio player interlock saat emergency panic terpicu.
+  - Verifikasi sensor privasi layar (*Gaussian blur redaction* pada region jendela sensitif).
+  - Isolasi scheduler saat status darurat aktif.
+
+### 📂 Berkas yang Dibuat / Dimodifikasi
+- `agent/scheduler.py` (Dibuat — APScheduler Background Engine & Failsafe Wrapper)
+- `agent/tools/registry.py` (Diperbarui — Menambahkan schedule_task, list_active_tasks, cancel_scheduled_task)
+- `agent/persona.py` (Diperbarui — Menambahkan alias compile_system_instruction)
+- `app.py` (Diperbarui — Fix DPI initialization order & scheduler shutdown)
+- `tests/test_scheduler.py` (Dibuat — Unit Tests Scheduler & Timers)
+- `tests/test_e2e.py` (Dibuat — End-to-End Integration & 100 CPS Stress Test)
+- `docs/progress.md` (Diperbarui — Seluruh Sprint Roadmap 0-7 Selesai 100%)
+- `docs/devlog/DEV-A.md` (Diperbarui)
+
+### 🛡️ Safety & Stress Verification (Rule 03 & Rule 05)
+- **100 CPS Stress Test:** Loop klik 100 CPS berhasil diputus seketika (<100ms) saat sinyal `abort()` aktif.
+- **Scheduler Interlock:** Tugas terjadwal yang jatuh tempo saat status darurat aktif langsung dibatalkan secara aman.
+- **Zero DPI Warning:** Inisialisasi QApplication berlangsung mulus di lingkungan Windows.
+
+### 🧪 Hasil Pengujian Unit (Unit Test Results)
+- Perintah: `python -m unittest discover tests`
+- Hasil: 45/45 pengujian lolos 100% (`Ran 45 tests in 7.276s - OK`).
+
 

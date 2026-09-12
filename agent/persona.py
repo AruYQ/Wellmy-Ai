@@ -74,6 +74,9 @@ Panduan Kerja Operasional:
 
         return full_prompt.strip()
 
+    # Alias untuk kompatibilitas nama fungsi
+    compile_system_instruction = compile_prompt
+
 
 # Singleton engine
 persona_engine = PersonaEngine()

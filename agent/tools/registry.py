@@ -220,6 +220,85 @@ def speak_response(text: str) -> Dict[str, Any]:
         return {"status": "error", "error": str(e)}
 
 
+def schedule_task(task_name: str, delay_seconds: int, message_or_action: str) -> Dict[str, Any]:
+    """
+    Menjadwalkan sebuah tugas, pengingat, atau aksi di masa depan setelah penundaan beberapa detik.
+
+    Args:
+        task_name: Nama deskripsi tugas (misal: "Pengingat Istirahat")
+        delay_seconds: Berapa detik dari sekarang tugas harus dieksekusi (misal: 60)
+        message_or_action: Pesan pengingat atau aksi yang harus dijalankan
+    """
+    if is_aborted():
+        return {"status": "aborted", "error": "Emergency stop aktif! Penjadwalan tugas dibatalkan."}
+
+    try:
+        from agent.scheduler import get_scheduler
+        scheduler = get_scheduler()
+
+        def _action_callback():
+            logger.info(f"PENGINGAT TERJADWAL DIEKSEKUSI: {task_name} -> {message_or_action}")
+            try:
+                from agent.voice.tts_engine import TTSEngine
+                TTSEngine().synthesize(f"Tuanku, pengingat untuk Anda: {message_or_action}")
+            except Exception:
+                pass
+
+        task_id = scheduler.schedule_delay(
+            delay_seconds=delay_seconds,
+            callback=_action_callback,
+            task_name=task_name,
+        )
+
+        return {
+            "status": "success",
+            "task_id": task_id,
+            "task_name": task_name,
+            "delay_seconds": delay_seconds,
+            "message": f"Tugas '{task_name}' berhasil dijadwalkan dalam {delay_seconds} detik.",
+        }
+    except Exception as e:
+        logger.error(f"Gagal schedule_task: {e}")
+        return {"status": "error", "error": str(e)}
+
+
+def list_active_tasks() -> Dict[str, Any]:
+    """
+    Melihat daftar tugas terjadwal dan timer yang saat ini sedang aktif menunggu eksekusi.
+    """
+    if is_aborted():
+        return {"status": "aborted", "error": "Emergency stop aktif!"}
+
+    try:
+        from agent.scheduler import get_scheduler
+        tasks = get_scheduler().get_active_tasks()
+        return {"status": "success", "total_tasks": len(tasks), "tasks": tasks}
+    except Exception as e:
+        logger.error(f"Gagal list_active_tasks: {e}")
+        return {"status": "error", "error": str(e)}
+
+
+def cancel_scheduled_task(task_id: str) -> Dict[str, Any]:
+    """
+    Membatalkan sebuah tugas terjadwal berdasarkan ID tugas.
+
+    Args:
+        task_id: ID unik tugas yang ingin dibatalkan
+    """
+    if is_aborted():
+        return {"status": "aborted", "error": "Emergency stop aktif!"}
+
+    try:
+        from agent.scheduler import get_scheduler
+        ok = get_scheduler().cancel_task(task_id)
+        if ok:
+            return {"status": "success", "message": f"Tugas {task_id} berhasil dibatalkan."}
+        return {"status": "not_found", "message": f"Tugas dengan ID {task_id} tidak ditemukan atau sudah selesai."}
+    except Exception as e:
+        logger.error(f"Gagal cancel_scheduled_task: {e}")
+        return {"status": "error", "error": str(e)}
+
+
 # Daftar seluruh tool yang tersedia untuk Google Gemini Function Calling
 OPERATOR_TOOLS: List[Any] = [
     get_cursor_info,
@@ -230,4 +309,7 @@ OPERATOR_TOOLS: List[Any] = [
     get_screen_dimensions,
     inspect_screen_vision,
     speak_response,
+    schedule_task,
+    list_active_tasks,
+    cancel_scheduled_task,
 ]
