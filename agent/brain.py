@@ -136,6 +136,19 @@ class WellmyBrain:
         except Exception as e:
             err_msg = str(e)
             logger.error(f"Error saat berinteraksi dengan Gemini: {err_msg}")
+
+            # Fallback otomatis ke gemini-3.6-flash jika model primer mengalami 503 spike atau 404
+            if ("503" in err_msg or "UNAVAILABLE" in err_msg or "404" in err_msg) and self.model_name != "gemini-3.6-flash":
+                logger.warning(f"Model {self.model_name} mengalami lonjakan traffic, beralih otomatis ke gemini-3.6-flash...")
+                if status_callback:
+                    status_callback("Wellmy mengalihkan penalaran ke jalur cadangan...")
+                try:
+                    self.model_name = "gemini-3.6-flash"
+                    self._reset_chat_session()
+                    response = self.chat_session.send_message(message)
+                    return response.text.strip() if response and response.text else "Perintah telah dilaksanakan, Tuanku."
+                except Exception as fallback_err:
+                    logger.error(f"Fallback juga gagal: {fallback_err}")
             
             if "API_KEY_INVALID" in err_msg or "400" in err_msg:
                 return "Tuanku, kunci API Gemini yang Anda gunakan tampaknya tidak valid atau telah kedaluwarsa. Mohon periksa kembali berkas .env Anda."

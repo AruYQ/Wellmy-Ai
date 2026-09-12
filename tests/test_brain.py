@@ -108,8 +108,8 @@ class TestWellmyBrain(unittest.TestCase):
 
     def test_agent_worker_execution(self):
         """Memvalidasi AgentWorker thread mengeksekusi pesan dan mengirim sinyal respon."""
-        brain = WellmyBrain()
-        # Gunakan pesan yang akan direspons tanpa API key
+        brain = MagicMock()
+        brain.send_message.return_value = "Respon Tiruan Wellmy"
         worker = AgentWorker(brain, "Tes Titah")
 
         responses = []
@@ -117,7 +117,7 @@ class TestWellmyBrain(unittest.TestCase):
         worker.run()
 
         self.assertEqual(len(responses), 1)
-        self.assertTrue(len(responses[0]) > 0)
+        self.assertEqual(responses[0], "Respon Tiruan Wellmy")
 
 
 if __name__ == "__main__":
