@@ -39,8 +39,8 @@ def main() -> None:
     app.setQuitOnLastWindowClosed(False)
 
     # 1. Inisialisasi Safety Panic Listener (Ctrl+Shift+Q)
-    safety_listener = init_safety_listener(config.emergency_hotkey)
-    logger.info(f"Safety Panic Listener aktif ({config.emergency_hotkey})")
+    safety_listener = init_safety_listener(config.panic_hotkey)
+    logger.info(f"Safety Panic Listener aktif ({config.panic_hotkey})")
 
     # 2. Inisialisasi Main HUD Window
     hud = MainHUD()

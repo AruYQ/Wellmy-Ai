@@ -23,6 +23,11 @@ class AppConfig(BaseSettings):
         default="ctrl+shift+q",
         description="Pintasan global darurat untuk menghentikan seluruh aktivitas instan",
     )
+
+    @property
+    def emergency_hotkey(self) -> str:
+        """Alias untuk panic_hotkey."""
+        return self.panic_hotkey
     gui_theme: str = Field(
         default="dark",
         description="Tema visual antarmuka desktop (dark/light)",
