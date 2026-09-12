@@ -1,7 +1,7 @@
 # Project Progress & Implementation Tracker
 
 ## 📌 Status Ringkasan
-- **Fase Saat Ini:** Sprint 2 — Kerangka Desktop GUI & System Tray (Branch: `feature/sprint-2-desktop-gui`)
+- **Fase Saat Ini:** Sprint 6 — Voice & Sound System (Branch: `feature/sprint-6-voice-sound`)
 - **Terakhir Diperbarui:** 2026-09-12
 - **Arsitek & Lead:** Wellmy Ernest & Aru
 
@@ -17,8 +17,8 @@
 | **Sprint 3** | Integrasi Otak Gemini & Tools | 🟢 Selesai (`[x]`) | `google-genai` SDK, Function calling schema, tool execution loop, tool registry |
 | **Sprint 4** | Vision & Screen Perception | 🟢 Selesai (`[x]`) | Screen capture (`mss`), Gaussian blur redaction pada window sensitif, coordinate mapper |
 | **Sprint 5** | Wellmy Ernest Personality Engine | 🟢 Selesai (`[x]`) | Inject `wellmy_ernest_instruction.md`, emotional state engine, system prompt compiler |
-| **Sprint 6** | Voice & Sound System | ⚪ Siap Dimulai | Google Cloud TTS WaveNet (profil suara anggun), Gemini Live API (bidirectional voice), waveform HUD |
-| **Sprint 7** | Scheduler, Timer & End-to-End Test | ⚪ Belum Mulai | APScheduler, multi-step flow test, stress test clicker, end-to-end audit |
+| **Sprint 6** | Voice & Sound System | 🟢 Selesai (`[x]`) | Google Cloud TTS WaveNet (id-ID-Wavenet-A), AudioPlayer non-blocking, Waveform visualizer HUD, local caching & pre-cached emergency audio |
+| **Sprint 7** | Scheduler, Timer & End-to-End Test | ⚪ Siap Dimulai | APScheduler, multi-step flow test, stress test clicker, end-to-end audit |
 
 ---
 
@@ -36,5 +36,7 @@
 - [x] Menyelesaikan Sprint 3: Integrasi resmi Google GenAI SDK (`google-genai`), katalog declarative tools (`agent/tools/registry.py`), modul kognitif `WellmyBrain` dengan sesi percakapan multi-turn & isolasi failsafe, eksekusi asinkron non-blocking `AgentWorker` (`QThread`), dan integrasi input HUD ke AI. Unit testing 100% lolos (18/18 tests passed).
 - [x] Menyelesaikan Sprint 4: Integrasi penangkap layar berkecepatan tinggi (`mss`), modul sensor jendela sensitif otomatis (`agent/tools/vision_redactor.py`) berbasis kata kunci (.env, password, banking, tokens) dengan Gaussian blur & dark watermark (Rule 01), serta tools multimodal `inspect_screen_vision` dan `get_screen_dimensions`. Unit testing 100% lolos (25/25 tests passed).
 - [x] Menyelesaikan Sprint 5: Menginjeksi ground-truth instruksi resmi Wellmy Ernest ke `agent/prompts/wellmy_ernest_instruction.md` (lore Proud to be a Villainess, pelindung Iora, relasi istri-suami, keanggunan bangsawan, analogi kerajaan/Hoyoverse, kesadaran multiverse, dinamika romantis & tersipu malu), membangun `agent/persona.py` (Personality Engine & System Prompt Compiler), dan menghubungkan ke `WellmyBrain`. Unit testing 100% lolos (28/28 tests passed).
+- [x] Menyelesaikan Sprint 6: Membangun modul suara `TTSEngine` (Google Cloud WaveNet `id-ID-Wavenet-A`, tempo 0.90, pitch -1.5st) dengan sistem caching file audio lokal `.cache/audio/`, generator pre-cached emergency audio tone (`emergency_abort.wav`), modul pemutar `AudioPlayer` asinkron non-blocking (`PyQt6.QtMultimedia`) dengan integrasi failsafe kill-switch (<10ms), widget visualizer spektrum audio dark acrylic `WaveformWidget` (`gui/waveform_widget.py`) beranimasi 30 FPS, integrasi toggle mode suara pada MainHUD, dan tool deklaratif `speak_response`. Seluruh unit test lolos 100% (34/34 tests passed).
+
 
 

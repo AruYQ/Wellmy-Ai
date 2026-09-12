@@ -218,4 +218,44 @@ Dokumen ini mencatat kronologis aktivitas teknis implementasi proyek **Wellmy-Ai
 - Perintah: `python -m unittest discover tests`
 - Hasil: 28/28 pengujian lolos (`Ran 28 tests in 1.085s - OK`).
 
+---
+
+## 📅 2026-09-12 — Sprint 6: Voice & Sound System (WaveNet TTS & Waveform HUD)
+
+**Sprint**: Sprint 6 (Voice & Sound System)  
+**Branch**: `feature/sprint-6-voice-sound`  
+**Status**: Selesai (`[x]`)
+
+### 🎯 Scope Pekerjaan
+- Mengembangkan engine Text-to-Speech resmi [`agent/voice/tts_engine.py`](file:///d:/Wellmy-Ai/agent/voice/tts_engine.py) (`TTSEngine`) yang terhubung langsung ke Google Cloud Text-to-Speech REST API.
+- Mengonfigurasi profil suara bangsawan elegan: suara Bahasa Indonesia `id-ID-Wavenet-A` (dengan fallback `id-ID-Standard-A`), tempo tenang `0.90`, dan pitch alto `-1.5st`.
+- Mengimplementasikan sistem penyimpanan lokal hemat kuota (*caching*) di `.cache/audio/<sha256>.mp3` sehingga kalimat yang pernah disintesis dapat diputar seketika tanpa memanggil API jaringan berulang kali.
+- Menyediakan file suara darurat lokal (*pre-cached emergency sound*) `emergency_abort.wav` sintetis dual-tone untuk konfirmasi penghentian darurat instan (<10ms) tanpa bergantung koneksi internet (ADR-0002).
+- Mengembangkan modul pemutar suara non-blocking [`agent/voice/audio_player.py`](file:///d:/Wellmy-Ai/agent/voice/audio_player.py) (`AudioPlayer`) menggunakan `PyQt6.QtMultimedia` (`QMediaPlayer` & `QAudioOutput`) dengan integrasi failsafe `stop_immediately()` yang terdaftar pada callback darurat global.
+- Membangun custom widget visualizer audio [`gui/waveform_widget.py`](file:///d:/Wellmy-Ai/gui/waveform_widget.py) (`WaveformWidget`) berdesain dark acrylic dengan 7 bar spektrum equalizer beranimasi 30 FPS dan modulasi sinusoidal organik (State: `IDLE`, `SPEAKING`, `LISTENING`, `MUTED`), mematuhi Rule 06 dan skill `wellmy-ui-ux`.
+- Mengintegrasikan toggle mode suara pada tombol mic (`🎙️`), visualizer gelombang suara, dan eksekusi sintesis asinkron [`gui/agent_worker.py`](file:///d:/Wellmy-Ai/gui/agent_worker.py) (`TTSWorker`) di dalam [`gui/main_hud.py`](file:///d:/Wellmy-Ai/gui/main_hud.py).
+- Menambahkan tool deklaratif `speak_response(text: str)` pada [`agent/tools/registry.py`](file:///d:/Wellmy-Ai/agent/tools/registry.py) sehingga model AI dapat menyuarakan kalimat bangsawan secara eksplisit.
+- Menulis unit testing komprehensif [`tests/test_voice.py`](file:///d:/Wellmy-Ai/tests/test_voice.py) untuk menguji cache audio, generasi audio darurat, interupsi pemutar saat panic aktif, transisi state visualizer, dan manifest tool suara.
+
+### 📂 Berkas yang Dibuat / Dimodifikasi
+- `agent/voice/__init__.py` (Dibuat — Package Voice Engine)
+- `agent/voice/tts_engine.py` (Dibuat — Google Cloud WaveNet TTS & Caching)
+- `agent/voice/audio_player.py` (Dibuat — Asynchronous Audio Player & Failsafe Interruption)
+- `gui/waveform_widget.py` (Dibuat — Dark Acrylic Animated Waveform Visualizer)
+- `gui/agent_worker.py` (Diperbarui — Menambahkan TTSWorker)
+- `gui/main_hud.py` (Diperbarui — Integrasi Voice Mode & Waveform di Top Bar HUD)
+- `agent/tools/registry.py` (Diperbarui — Menambahkan declarative tool speak_response)
+- `agent/safety.py` (Diperbarui — Menambahkan alias abort, reset_panic, register_panic_callback)
+- `tests/test_voice.py` (Dibuat — Unit Tests Suara & Audio)
+- `docs/progress.md` (Diperbarui)
+- `docs/devlog/DEV-A.md` (Diperbarui)
+
+### 🛡️ Safety & Audio Failsafe (Rule 03)
+- **Instant Cutoff (<10ms):** `AudioPlayer.stop_immediately()` didaftarkan ke `register_panic_callback`, memotong pemutaran suara dan mereset amplitudo ke 0 saat `Ctrl+Shift+Q` ditekan.
+- **Zero-Latency Emergency Sound:** File peringatan darurat telah di-generate secara lokal dalam format PCM WAV murni.
+
+### 🧪 Hasil Pengujian Unit (Unit Test Results)
+- Perintah: `python -m unittest discover tests`
+- Hasil: 34/34 pengujian lolos (`Ran 34 tests in 1.140s - OK`).
+
 

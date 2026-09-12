@@ -197,6 +197,29 @@ def inspect_screen_vision(question: str = "Jelaskan apa yang sedang terlihat di 
         return {"status": "error", "error": str(e)}
 
 
+def speak_response(text: str) -> Dict[str, Any]:
+    """
+    Mensintesis dan menyuarakan ucapan dengan karakter vokal bangsawan Wellmy Ernest (Google Cloud WaveNet).
+    Gunakan tool ini ketika Anda ingin menyampaikan pengumuman atau berbicara secara vokal kepada pengguna.
+
+    Args:
+        text: Kalimat yang ingin diucapkan dengan nada anggun.
+    """
+    if is_aborted():
+        return {"status": "aborted", "error": "Emergency stop aktif! Sintesis suara dibatalkan."}
+
+    try:
+        from agent.voice.tts_engine import TTSEngine
+        engine = TTSEngine()
+        audio_path = engine.synthesize(text)
+        if audio_path and audio_path.exists():
+            return {"status": "success", "audio_path": str(audio_path), "text": text}
+        return {"status": "error", "error": "Gagal menghasilkan file audio sintesis suara."}
+    except Exception as e:
+        logger.error(f"Gagal speak_response: {e}")
+        return {"status": "error", "error": str(e)}
+
+
 # Daftar seluruh tool yang tersedia untuk Google Gemini Function Calling
 OPERATOR_TOOLS: List[Any] = [
     get_cursor_info,
@@ -206,4 +229,5 @@ OPERATOR_TOOLS: List[Any] = [
     execute_autoclicker,
     get_screen_dimensions,
     inspect_screen_vision,
+    speak_response,
 ]

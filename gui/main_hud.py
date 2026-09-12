@@ -13,6 +13,7 @@ Main HUD (Heads-Up Display) untuk Wellmy-Ai Desktop Operator.
 Menerapkan Spotlight-style bar dengan status badge, input perintah, drawer autoclicker, dan draggable container.
 """
 
+from pathlib import Path
 from typing import Optional
 
 from PyQt6.QtCore import (
@@ -38,10 +39,13 @@ from PyQt6.QtWidgets import (
 )
 
 from agent.brain import WellmyBrain
-from gui.agent_worker import AgentWorker
+from agent.voice.audio_player import AudioPlayer
+from agent.voice.tts_engine import TTSEngine
+from gui.agent_worker import AgentWorker, TTSWorker
 from gui.autoclicker_view import AutoclickerView
 from gui.panic_badge import PanicBadge
 from gui.styles import GLOBAL_STYLESHEET, TOKENS
+from gui.waveform_widget import WaveformWidget
 
 
 class MainHUD(QWidget):
@@ -59,10 +63,29 @@ class MainHUD(QWidget):
         self._autoclicker_expanded = False
         self.brain = brain or WellmyBrain()
         self._active_worker: Optional[AgentWorker] = None
+        self._active_tts_worker: Optional[TTSWorker] = None
+
+        # Voice & Sound Engine
+        self.tts_engine = TTSEngine()
+        self.audio_player = AudioPlayer(self)
+        self.voice_output_enabled = False
 
         self._init_window_flags()
         self._init_ui()
+        self._init_voice_system()
         self._init_animations()
+
+    def _init_voice_system(self) -> None:
+        """Menghubungkan sinyal audio player ke visualizer waveform."""
+        self.audio_player.playback_started.connect(
+            lambda: self.waveform.set_state(WaveformWidget.STATE_SPEAKING)
+        )
+        self.audio_player.playback_finished.connect(
+            lambda: self.waveform.set_state(
+                WaveformWidget.STATE_IDLE if self.voice_output_enabled else WaveformWidget.STATE_MUTED
+            )
+        )
+        self.audio_player.amplitude_changed.connect(self.waveform.set_amplitude)
 
     def _init_window_flags(self) -> None:
         # Gunakan FramelessWindowHint dan WindowStaysOnTopHint tanpa Tool flag
@@ -129,13 +152,18 @@ class MainHUD(QWidget):
         self.command_input.returnPressed.connect(self._on_command_return)
         top_bar.addWidget(self.command_input, 1)
 
-        # Mic Action Button (Voice Input Placeholder)
+        # Mic Action Button (Voice Output Toggle)
         self.mic_btn = QPushButton("🎙️", self.container)
         self.mic_btn.setProperty("class", "IconButton")
-        self.mic_btn.setToolTip("Voice Mode (Gemini Live / TTS)")
+        self.mic_btn.setToolTip("Mode Suara: NONAKTIF (Klik untuk mengaktifkan)")
         self.mic_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.mic_btn.clicked.connect(self._on_mic_clicked)
         top_bar.addWidget(self.mic_btn)
+
+        # Waveform Audio Visualizer
+        self.waveform = WaveformWidget(self.container)
+        self.waveform.set_state(WaveformWidget.STATE_MUTED)
+        top_bar.addWidget(self.waveform)
 
         # Autoclicker Drawer Toggle Button
         self.clicker_toggle_btn = QPushButton("⚡", self.container)
@@ -256,13 +284,45 @@ class MainHUD(QWidget):
 
     def _on_worker_response(self, response: str) -> None:
         self.set_response_text(response)
+        if self.voice_output_enabled:
+            self.speak(response)
 
     def _on_worker_error(self, err_msg: str) -> None:
         self.set_response_text(f"⚠️ {err_msg}")
 
+    def speak(self, text: str) -> None:
+        """Mensintesis dan memutar suara Wellmy secara non-blocking di background thread."""
+        if not text.strip():
+            return
+
+        # Batalkan task TTS sebelumnya jika masih berlangsung
+        if self._active_tts_worker and self._active_tts_worker.isRunning():
+            self._active_tts_worker.terminate()
+            self._active_tts_worker.wait(100)
+
+        self._active_tts_worker = TTSWorker(self.tts_engine, text)
+        self._active_tts_worker.audio_ready.connect(
+            lambda audio_path: self.audio_player.play_file(Path(audio_path))
+        )
+        self._active_tts_worker.start()
+
     def _on_mic_clicked(self) -> None:
+        """Toggle mode suara aktif / nonaktif."""
+        self.voice_output_enabled = not self.voice_output_enabled
         self.voice_toggle_requested.emit()
-        self.set_response_text("Modul suara Wellmy (WaveNet & Gemini Live) akan diaktifkan pada Sprint 4 & 6.")
+
+        if self.voice_output_enabled:
+            self.mic_btn.setStyleSheet(f"color: #A882DD; font-size: 14px; font-weight: bold; background: {TOKENS['bg_overlay']};")
+            self.mic_btn.setToolTip("Mode Suara: AKTIF (Klik untuk menonaktifkan)")
+            self.waveform.set_state(WaveformWidget.STATE_IDLE)
+            self.set_response_text("🎙️ Mode suara anggun Wellmy (WaveNet) diaktifkan.")
+            self.speak("Mode suara telah aktif, Tuanku. Wellmy siap mendampingi Anda.")
+        else:
+            self.mic_btn.setStyleSheet("")
+            self.mic_btn.setToolTip("Mode Suara: NONAKTIF (Klik untuk mengaktifkan)")
+            self.audio_player.stop_immediately()
+            self.waveform.set_state(WaveformWidget.STATE_MUTED)
+            self.set_response_text("🔇 Mode suara Wellmy dinonaktifkan.")
 
     # -------------------------------------------------------------
     # Mouse Dragging Support (Bisa digeser ke mana saja di layar)
