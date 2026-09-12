@@ -1,7 +1,7 @@
 # Project Progress & Implementation Tracker
 
 ## 📌 Status Ringkasan
-- **Fase Saat Ini:** Sprint 1 — Fondasi Keamanan & Mekanisme Failsafe (Branch: `feature/sprint-1-foundation-safety`)
+- **Fase Saat Ini:** Sprint 2 — Kerangka Desktop GUI & System Tray (Branch: `feature/sprint-2-desktop-gui`)
 - **Terakhir Diperbarui:** 2026-09-12
 - **Arsitek & Lead:** Wellmy Ernest & Aru
 
@@ -13,8 +13,8 @@
 |---|---|---|---|
 | **Sprint 0** | Blueprint & Project Scaffolding | 🟢 Selesai | README.md v3.0, Dokumen ADR, Dokumen Fitur, Rules & Skills (.agents) |
 | **Sprint 1** | Fondasi Keamanan & Failsafe | 🟢 Selesai (`[x]`) | `config.py` (SecretStr), `safety.py` (Panic Hotkey), PyAutoGUI Failsafe, clicker engine |
-| **Sprint 2** | Kerangka Desktop GUI & System Tray | ⚪ Belum Mulai | PyQt6 main window, frameless HUD spotlight, system tray integration, visual panic |
-| **Sprint 3** | Integrasi Otak Gemini & Tools | ⚪ Belum Mulai | `google-genai` SDK, Function calling schema, tool execution loop, tool registry |
+| **Sprint 2** | Kerangka Desktop GUI & System Tray | 🟢 Selesai (`[x]`) | PyQt6 main window, frameless HUD spotlight, system tray integration, visual panic |
+| **Sprint 3** | Integrasi Otak Gemini & Tools | ⚪ Siap Dimulai | `google-genai` SDK, Function calling schema, tool execution loop, tool registry |
 | **Sprint 4** | Vision & Screen Perception | ⚪ Belum Mulai | Screen capture (`mss`), Gaussian blur redaction pada window sensitif, coordinate mapper |
 | **Sprint 5** | Wellmy Ernest Personality Engine | ⚪ Menunggu Prompt User | Inject `wellmy_ernest_instruction.md`, emotional state engine, system prompt compiler |
 | **Sprint 6** | Voice & Sound System | ⚪ Belum Mulai | Google Cloud TTS WaveNet (profil suara anggun), Gemini Live API (bidirectional voice), waveform HUD |
@@ -32,5 +32,6 @@
 - [x] Menyiapkan wadah khusus untuk instruksi resmi kepribadian di `agent/prompts/wellmy_ernest_instruction.md`.
 - [x] Mengonversi & mengadaptasi seluruh `Import-rules/` dan `Import-Skils/` menjadi 6 aturan resmi (.agents/rules) dan 3 skill khusus (.agents/skills) untuk Desktop Operator.
 - [x] Menyelesaikan Sprint 1: `config.py` (`SecretStr`), `safety.py` (Panic Hotkey), engine kursor & autoclicker presisi, unit testing 100% lolos (5/5 tests passed).
+- [x] Menyelesaikan Sprint 2: QSS Design System modern (`gui/styles.py`), PanicBadge thread-safe visual indicator (`gui/panic_badge.py`), AutoclickerView control panel 1-100 CPS dengan background thread worker (`gui/autoclicker_view.py`), MainHUD frameless spotlight floating window (`gui/main_hud.py`), SystemTrayManager dengan procedural monogram icon & failsafe trigger (`gui/system_tray.py`), dan main entrypoint `app.py`. Unit testing 100% lolos (11/11 tests passed).
 
 
