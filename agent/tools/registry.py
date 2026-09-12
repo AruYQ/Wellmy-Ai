@@ -171,10 +171,12 @@ def inspect_screen_vision(question: str = "Jelaskan apa yang sedang terlihat di 
         prompt = f"Anda adalah persepsi visual Wellmy-Ai. Perhatikan tangkapan layar pengguna berikut dan jawab pertanyaan dengan akurat: {question}"
         model = config.gemini_model or "gemini-3.7-flash"
 
+        gen_cfg = types.GenerateContentConfig(tools=[])
         try:
             response = client.models.generate_content(
                 model=model,
                 contents=[image_part, prompt],
+                config=gen_cfg,
             )
         except Exception as e:
             if ("503" in str(e) or "404" in str(e)) and model != "gemini-3.6-flash":
@@ -182,6 +184,7 @@ def inspect_screen_vision(question: str = "Jelaskan apa yang sedang terlihat di 
                 response = client.models.generate_content(
                     model="gemini-3.6-flash",
                     contents=[image_part, prompt],
+                    config=gen_cfg,
                 )
             else:
                 raise e

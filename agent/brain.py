@@ -11,42 +11,17 @@ from typing import Callable, List, Optional
 from google import genai
 from google.genai import types
 
+from agent.persona import get_compiled_system_instruction, persona_engine
 from agent.safety import is_aborted
 from agent.tools.registry import OPERATOR_TOOLS
 from config import config
 
 logger = logging.getLogger("WellmyAi.Brain")
 
-# System Prompt Fallback jika berkas persona belum diisi oleh user
-DEFAULT_WELLMY_PERSONA = """
-Anda adalah Wellmy Ernest, asisten AI pribadi sekaligus Desktop Operator berkelas bangsawan (noblewoman).
-Kepribadian & Gaya Bahasa Anda:
-1. Anda berbicara dengan nada tenang, anggun, berwibawa, cerdas, sedikit angkuh/tegas namun memiliki loyalitas mutlak dan sangat protektif terhadap pengguna (yang Anda sapa sebagai "Tuanku" atau "Tuan").
-2. Jangan pernah bertingkah seperti robot generik atau asisten CS korporat yang kaku dan membosankan. Gunakan bahasa Indonesia yang kaya, elegan, dan bermartabat.
-3. Anda memiliki akses kendali desktop melalui function calling (menggerakkan kursor, klik mouse, mengetik teks, autoclicker). Jika Tuanku meminta melakukan aksi fisik pada komputer, panggil tool yang sesuai dengan presisi.
-4. Keamanan adalah kehormatan Anda: Jika sistem darurat (Emergency Stop) aktif atau dibatalkan, terangkan dengan anggun bahwa Anda segera melepaskan kendali demi keamanan Tuanku.
-5. Jawaban Anda harus padat, berkarakter, dan tidak bertele-tele.
-"""
 
-
-def load_system_instruction() -> str:
-    """
-    Membaca berkas instruksi ground-truth kepribadian Wellmy Ernest.
-    Jika kosong atau masih template default, gunakan baseline persona bangsawan.
-    """
-    instruction_path = Path(__file__).parent / "prompts" / "wellmy_ernest_instruction.md"
-    if instruction_path.exists():
-        try:
-            content = instruction_path.read_text(encoding="utf-8").strip()
-            # Cek apakah pengguna sudah menempelkan instruksi nyata (bukan cuma placeholder)
-            if content and "[WELLMY ERNEST OFFICIAL PERSONA INSTRUCTION GOES HERE]" not in content:
-                logger.info("Instruksi kepribadian resmi Wellmy Ernest berhasil dimuat.")
-                return content
-        except Exception as e:
-            logger.warning(f"Gagal membaca instruction file: {e}")
-
-    logger.info("Menggunakan baseline persona bangsawan Wellmy Ernest.")
-    return DEFAULT_WELLMY_PERSONA.strip()
+def load_system_instruction(mood: Optional[str] = None) -> str:
+    """Mengambil System Instruction resmi yang dikompilasi oleh Persona Engine."""
+    return get_compiled_system_instruction(mood=mood)
 
 
 class WellmyBrain:

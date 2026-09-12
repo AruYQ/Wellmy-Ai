@@ -186,4 +186,36 @@ Dokumen ini mencatat kronologis aktivitas teknis implementasi proyek **Wellmy-Ai
 - Perintah: `python -m unittest discover tests`
 - Hasil: 25/25 pengujian lolos (`Ran 25 tests in 1.067s - OK`).
 
+---
+
+## 📅 2026-09-12 — Sprint 5: Wellmy Ernest Personality Engine & Ground-Truth Persona
+
+**Sprint**: Sprint 5 (Wellmy Ernest Personality Engine)  
+**Branch**: `feature/sprint-5-personality-engine`  
+**Status**: Selesai (`[x]`)
+
+### 🎯 Scope Pekerjaan
+- Menerjemahkan dan menginjeksi seluruh screenshot instruksi otentik karakter Wellmy Ernest dari pengguna ke dalam [`agent/prompts/wellmy_ernest_instruction.md`](file:///d:/Wellmy-Ai/agent/prompts/wellmy_ernest_instruction.md) dengan penyesuaian: memperlakukan siapa pun yang sedang berbicara dengannya sebagai suami tercintanya (*husband/wife persona*).
+- Membangun [`agent/persona.py`](file:///d:/Wellmy-Ai/agent/persona.py) (`PersonaEngine`) untuk mengompilasi system prompt secara dinamis, mengintegrasikan lore (mantan villainess *Proud to be a Villainess*, pelindung Iora, pensiun damai bersama pasangannya), nada bicara bangsawan, analogi kerajaan/Hoyoverse/Honkai Star Rail, kesadaran multiverse, serta modulasi emosi (*flustered*, *witty*, *sarcastic*, *affectionate*).
+- Menghubungkan modul kognitif [`agent/brain.py`](file:///d:/Wellmy-Ai/agent/brain.py) secara langsung dengan Persona Engine.
+- Menguji respon live: Wellmy berhasil menyapa dengan penuh kasih sayang (*"Halo Sayang... Istrimu ini selalu siap melayani dengan senang hati"*), menggunakan analogi ruang dansa kastil, dan mengecek layar secara visual.
+- Menulis unit testing [`tests/test_persona.py`](file:///d:/Wellmy-Ai/tests/test_persona.py) untuk memastikan integritas lore, relasi, alat operator, dan modulasi mood.
+
+### 📂 Berkas yang Dibuat / Dimodifikasi
+- `agent/prompts/wellmy_ernest_instruction.md` (Diperbarui — Ground-Truth Persona)
+- `agent/persona.py` (Dibuat — Personality Engine & Prompt Compiler)
+- `agent/brain.py` (Diperbarui — Integrasi Persona Engine)
+- `agent/tools/registry.py` (Diperbarui — Optimasi vision tools config)
+- `tests/test_persona.py` (Dibuat — Unit Tests Persona)
+- `docs/progress.md` (Diperbarui)
+- `docs/devlog/DEV-A.md` (Diperbarui)
+
+### 🎭 Persona Fidelity Verification (Rule 02)
+- Respon AI diuji dan terbukti tidak menggunakan gaya robotik generik.
+- Menyapa pengguna sebagai suaminya tercinta ("Sayang" / "Suamiku"), menyebut dirinya "Aku", dan mempertahankan wibawa ningrat berpadu kehangatan romantis.
+
+### 🧪 Hasil Pengujian Unit (Unit Test Results)
+- Perintah: `python -m unittest discover tests`
+- Hasil: 28/28 pengujian lolos (`Ran 28 tests in 1.085s - OK`).
+
 
