@@ -1,12 +1,12 @@
 """
-Engine Text-to-Speech (TTS) Google Cloud WaveNet untuk Wellmy-Ai.
-Menghasilkan sintesis suara bangsawan elegan (id-ID-Wavenet-A) dengan caching audio lokal
-dan dukungan suara darurat pre-cached tanpa latensi.
+Engine Text-to-Speech (TTS) untuk Wellmy-Ai.
+Menghasilkan sintesis suara neural bangsawan elegan (id-ID-GadisNeural / WaveNet)
+dengan caching audio lokal dan dukungan suara darurat pre-cached tanpa latensi.
 """
 
+import asyncio
 import base64
 import hashlib
-import json
 import logging
 import math
 import struct
@@ -14,10 +14,8 @@ import wave
 from pathlib import Path
 from typing import Optional
 
-import requests
-
-from config import config
 from agent.safety import is_aborted
+from config import config
 
 logger = logging.getLogger("wellmy.voice.tts")
 
@@ -25,14 +23,13 @@ logger = logging.getLogger("wellmy.voice.tts")
 class TTSEngine:
     """
     Klien Text-to-Speech resmi untuk kepribadian Wellmy Ernest.
-    Menggunakan profil suara alto elegan (id-ID-Wavenet-A, pitch -1.5st, rate 0.90).
+    Menggunakan profil suara alto elegan (id-ID-GadisNeural, rate -5%, pitch -2Hz)
+    berbasis Neural TTS bebas kuota dan fallback Google Cloud TTS.
     """
 
-    DEFAULT_VOICE = "id-ID-Wavenet-A"
-    DEFAULT_LANG = "id-ID"
-    DEFAULT_GENDER = "FEMALE"
-    SPEAKING_RATE = 0.90
-    PITCH = -1.5
+    DEFAULT_VOICE = "id-ID-GadisNeural"
+    SPEAKING_RATE = "-5%"
+    PITCH = "-2Hz"
 
     def __init__(self, cache_dir: Optional[Path] = None):
         self.cache_dir = cache_dir or Path(".cache/audio")
@@ -84,10 +81,30 @@ class TTSEngine:
     def emergency_sound_path(self) -> Path:
         return self._emergency_sound_path
 
+    def _synthesize_edge_tts(self, text: str, output_path: Path) -> bool:
+        """Sintesis ucapan menggunakan engine Edge Neural Voice (id-ID-GadisNeural)."""
+        try:
+            import edge_tts
+
+            async def _run():
+                communicate = edge_tts.Communicate(
+                    text=text,
+                    voice=self.DEFAULT_VOICE,
+                    rate=self.SPEAKING_RATE,
+                    pitch=self.PITCH,
+                )
+                await communicate.save(str(output_path))
+
+            asyncio.run(_run())
+            return output_path.exists() and output_path.stat().st_size > 0
+        except Exception as e:
+            logger.error(f"Gagal sintesis edge-tts: {e}")
+            return False
+
     def synthesize(self, text: str) -> Optional[Path]:
         """
         Melakukan sintesis ucapan menjadi file audio.
-        Mengecek cache lokal terlebih dahulu untuk efisiensi kuota dan kecepatan.
+        Mengecek cache lokal terlebih dahulu untuk efisiensi dan kecepatan.
         Mengembalikan Path file audio (MP3) yang siap diputar, atau None jika gagal.
         """
         clean_text = text.strip()
@@ -104,58 +121,42 @@ class TTSEngine:
             logger.debug(f"Mengambil audio dari cache lokal: {cache_path.name}")
             return cache_path
 
-        # Cek API Key
-        if not config.is_api_key_configured():
-            logger.warning("API Key tidak terkonfigurasi. Melewati sintesis TTS Google Cloud.")
-            return None
+        logger.info(f"Meminta sintesis suara neural Wellmy untuk teks: {clean_text[:40]}...")
 
-        api_key = config.google_api_key.get_secret_value()
-        url = f"https://texttospeech.googleapis.com/v1/text:synthesize?key={api_key}"
+        # 1. Coba Edge Neural TTS (Kualitas tinggi, bebas kuota, tanpa repot OAuth)
+        if self._synthesize_edge_tts(clean_text, cache_path):
+            logger.info(f"Sintesis suara neural berhasil disimpan ke cache: {cache_path.name}")
+            return cache_path
 
-        payload = {
-            "input": {"text": clean_text},
-            "voice": {
-                "languageCode": self.DEFAULT_LANG,
-                "name": self.DEFAULT_VOICE,
-                "ssmlGender": self.DEFAULT_GENDER,
-            },
-            "audioConfig": {
-                "audioEncoding": "MP3",
-                "speakingRate": self.SPEAKING_RATE,
-                "pitch": self.PITCH,
-            },
-        }
-
-        headers = {"Content-Type": "application/json"}
-
-        try:
-            logger.info(f"Meminta sintesis WaveNet Google Cloud untuk teks: {clean_text[:40]}...")
-            resp = requests.post(url, json=payload, headers=headers, timeout=8.0)
-
-            if resp.status_code == 200:
-                data = resp.json()
-                audio_content_b64 = data.get("audioContent")
-                if audio_content_b64:
-                    audio_bytes = base64.b64decode(audio_content_b64)
-                    cache_path.write_bytes(audio_bytes)
-                    logger.info(f"Sintesis suara berhasil disimpan ke cache: {cache_path.name}")
-                    return cache_path
-
-            # Fallback jika model Wavenet tidak tersedia untuk akun ini, coba id-ID-Standard-A
-            if resp.status_code == 400 and self.DEFAULT_VOICE != "id-ID-Standard-A":
-                logger.warning(f"Voice {self.DEFAULT_VOICE} gagal ({resp.status_code}), mencoba fallback Standard-A...")
-                payload["voice"]["name"] = "id-ID-Standard-A"
-                fallback_resp = requests.post(url, json=payload, headers=headers, timeout=8.0)
-                if fallback_resp.status_code == 200:
-                    data = fallback_resp.json()
-                    audio_bytes = base64.b64decode(data.get("audioContent", ""))
-                    if audio_bytes:
-                        cache_path.write_bytes(audio_bytes)
+        # 2. Fallback Google Cloud TTS jika konfigurasi tersedia
+        if config.is_api_key_configured():
+            try:
+                import requests
+                api_key = config.google_api_key.get_secret_value()
+                url = f"https://texttospeech.googleapis.com/v1/text:synthesize?key={api_key}"
+                payload = {
+                    "input": {"text": clean_text},
+                    "voice": {
+                        "languageCode": "id-ID",
+                        "name": "id-ID-Wavenet-A",
+                        "ssmlGender": "FEMALE",
+                    },
+                    "audioConfig": {
+                        "audioEncoding": "MP3",
+                        "speakingRate": 0.90,
+                        "pitch": -1.5,
+                    },
+                }
+                headers = {"Content-Type": "application/json"}
+                resp = requests.post(url, json=payload, headers=headers, timeout=8.0)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    audio_b64 = data.get("audioContent")
+                    if audio_b64:
+                        cache_path.write_bytes(base64.b64decode(audio_b64))
                         return cache_path
+            except Exception as e:
+                logger.error(f"Fallback Google Cloud TTS gagal: {e}")
 
-            logger.error(f"Google Cloud TTS API menolak permintaan: HTTP {resp.status_code} - {resp.text[:120]}")
-            return None
-
-        except Exception as e:
-            logger.error(f"Kesalahan jaringan saat memanggil Google Cloud TTS: {e}")
-            return None
+        logger.error("Seluruh engine sintesis suara gagal menghasilkan audio.")
+        return None

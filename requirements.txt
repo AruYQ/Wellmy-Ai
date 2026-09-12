@@ -11,6 +11,7 @@ pynput>=1.7.6
 google-genai>=1.0.0
 
 # Voice & Audio System
+edge-tts>=7.0.0
 google-cloud-texttospeech>=2.16.0
 sounddevice>=0.4.6
 numpy>=1.26.0
