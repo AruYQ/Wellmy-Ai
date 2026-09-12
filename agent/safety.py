@@ -34,7 +34,12 @@ def trigger_emergency_stop(reason: str = "Pintasan panik darurat dipicu!") -> No
         with _callbacks_lock:
             for cb in _emergency_callbacks:
                 try:
-                    cb(reason)
+                    import inspect
+                    sig = inspect.signature(cb)
+                    if len(sig.parameters) == 0:
+                        cb()
+                    else:
+                        cb(reason)
                 except Exception as e:
                     logger.error(f"Gagal mengeksekusi emergency callback: {e}")
 
@@ -50,11 +55,19 @@ def reset_emergency_stop() -> None:
     reset_abort()
 
 
-def register_emergency_callback(callback: Callable[[str], None]) -> None:
+# Alias konsisten untuk kenyamanan ekosistem
+abort = trigger_emergency_stop
+reset_panic = reset_abort
+
+
+def register_emergency_callback(callback: Callable[..., None]) -> None:
     """Mendaftarkan fungsi yang akan dipanggil seketika saat tombol panik aktif."""
     with _callbacks_lock:
         if callback not in _emergency_callbacks:
             _emergency_callbacks.append(callback)
+
+
+register_panic_callback = register_emergency_callback
 
 
 class PanicHotkeyListener:

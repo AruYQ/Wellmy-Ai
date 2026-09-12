@@ -48,3 +48,26 @@ class AgentWorker(QThread):
             self.error_signal.emit(f"Terjadi kesalahan saat memproses perintah: {str(e)}")
         finally:
             self.finished_signal.emit()
+
+
+class TTSWorker(QThread):
+    """Worker thread untuk sintesis suara Google Cloud WaveNet tanpa memblokir GUI thread."""
+
+    audio_ready = pyqtSignal(str)   # Mengirim path file audio lokal
+    error_signal = pyqtSignal(str)  # Mengirim error jika gagal
+
+    def __init__(self, tts_engine, text: str):
+        super().__init__()
+        self.tts_engine = tts_engine
+        self.text = text
+
+    def run(self) -> None:
+        try:
+            audio_path = self.tts_engine.synthesize(self.text)
+            if audio_path and audio_path.exists():
+                self.audio_ready.emit(str(audio_path))
+            else:
+                self.error_signal.emit("Sintesis suara tidak menghasilkan file audio.")
+        except Exception as e:
+            self.error_signal.emit(f"Gagal mensintesis suara: {e}")
+
