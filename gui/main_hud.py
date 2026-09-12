@@ -37,6 +37,8 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+from agent.brain import WellmyBrain
+from gui.agent_worker import AgentWorker
 from gui.autoclicker_view import AutoclickerView
 from gui.panic_badge import PanicBadge
 from gui.styles import GLOBAL_STYLESHEET, TOKENS
@@ -51,10 +53,12 @@ class MainHUD(QWidget):
     command_submitted = pyqtSignal(str)
     voice_toggle_requested = pyqtSignal()
 
-    def __init__(self):
+    def __init__(self, brain: Optional[WellmyBrain] = None):
         super().__init__()
         self._drag_pos: Optional[QPoint] = None
         self._autoclicker_expanded = False
+        self.brain = brain or WellmyBrain()
+        self._active_worker: Optional[AgentWorker] = None
 
         self._init_window_flags()
         self._init_ui()
@@ -226,14 +230,39 @@ class MainHUD(QWidget):
 
     def _on_command_return(self) -> None:
         text = self.command_input.text().strip()
-        if text:
-            self.command_submitted.emit(text)
-            self.set_response_text(f"Perintah diterima: \"{text}\"")
-            self.command_input.clear()
+        if not text:
+            return
+
+        self.command_input.clear()
+        self.command_submitted.emit(text)
+
+        # Jika worker sebelumnya masih berjalan, cegah overlapping
+        if self._active_worker and self._active_worker.isRunning():
+            self.set_response_text(f"Tuanku, titah sebelumnya masih diproses. Mohon tunggu sejenak.")
+            return
+
+        # Tampilkan status awal
+        self.set_response_text(f"👑 Wellmy sedang merenungkan titah Anda...")
+
+        # Luncurkan background AgentWorker
+        self._active_worker = AgentWorker(self.brain, text)
+        self._active_worker.status_signal.connect(self._on_worker_status)
+        self._active_worker.response_signal.connect(self._on_worker_response)
+        self._active_worker.error_signal.connect(self._on_worker_error)
+        self._active_worker.start()
+
+    def _on_worker_status(self, status: str) -> None:
+        self.set_response_text(f"💭 {status}")
+
+    def _on_worker_response(self, response: str) -> None:
+        self.set_response_text(response)
+
+    def _on_worker_error(self, err_msg: str) -> None:
+        self.set_response_text(f"⚠️ {err_msg}")
 
     def _on_mic_clicked(self) -> None:
         self.voice_toggle_requested.emit()
-        self.set_response_text("Modul suara Wellmy (WaveNet & Gemini Live) akan diaktifkan pada Sprint 3 & 4.")
+        self.set_response_text("Modul suara Wellmy (WaveNet & Gemini Live) akan diaktifkan pada Sprint 4 & 6.")
 
     # -------------------------------------------------------------
     # Mouse Dragging Support (Bisa digeser ke mana saja di layar)
