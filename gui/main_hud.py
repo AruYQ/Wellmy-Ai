@@ -61,13 +61,19 @@ class MainHUD(QWidget):
         self._init_animations()
 
     def _init_window_flags(self) -> None:
+        # Gunakan FramelessWindowHint dan WindowStaysOnTopHint tanpa Tool flag
+        # agar aplikasi tetap muncul di Windows Taskbar dan Alt+Tab
         self.setWindowFlags(
             Qt.WindowType.FramelessWindowHint
             | Qt.WindowType.WindowStaysOnTopHint
-            | Qt.WindowType.Tool
         )
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
         self.setStyleSheet(GLOBAL_STYLESHEET)
+        
+        # Set icon resmi pada window agar taskbar menampilkan logo Wellmy
+        from gui.system_tray import create_default_tray_icon
+        self.setWindowIcon(create_default_tray_icon(is_panic=False))
+        self.setWindowTitle("Wellmy-Ai Desktop Operator")
         self.resize(680, 72)
 
     def _init_ui(self) -> None:
